@@ -1,0 +1,72 @@
+import cv2
+import numpy as np
+from scipy import stats
+import math
+
+cap = cv2.VideoCapture("test.mp4")
+# cap = cv2.VideoCapture("output.avi")
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out_width = 100
+out_height = 100
+out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
+pixels = []
+
+while True:
+    ret, frame = cap.read()
+    # print(frame)
+    # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # print(len(frame[0]))
+    for i in range(200,200+out_width):
+        for j in range(200,200+out_height):
+            pixels.append(frame[i][j])
+    # print(frame[0][0])
+    cv2.imshow('video feed', frame)
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+        
+cap.release()
+cv2.destroyAllWindows()
+
+
+for i in range(out_width):
+    for j in range(out_height):
+        # print(i*out_width+j)
+        m_r_a = []
+        m_g_a = []
+        m_b_a = []
+        for k in range((i*out_width)+j, len(pixels), out_width*out_height):
+            # print(f"{(i*100+1)*(j+1)+j}")
+            # print(k)
+            pass
+            # print(f"DO: {pixels[k]}")
+            m_r_a.append(pixels[k][0])
+            # print(m_r)
+            m_g_a.append(pixels[k][1])
+            m_b_a.append(pixels[k][2])
+            c_r = np.bincount(m_r_a)
+            c_g = np.bincount(m_g_a)
+            c_b = np.bincount(m_b_a)
+            m_r = np.argmax(c_r)
+            m_g = np.argmax(c_g)
+            m_b = np.argmax(c_b)
+            # m_r, _ = stats.mode(m_r_a)
+            # m_g, _ = stats.mode(m_g_a)
+            # m_b, _ = stats.mode(m_b_a)
+            # m_r = np.median(m_r_a)
+            # m_g = np.median(m_g_a)
+            # m_b = np.median(m_b_a)
+            pixels[k] = np.array([m_r,m_g,m_b], dtype=np.uint8)
+            # pixels[k] = temp
+            # print(f"POSLE: {pixels[k]}")
+
+
+for i in range(len(pixels)//(out_width*out_height)):
+    mat = np.array(pixels[out_width*out_height*i:out_width*out_height*(i+1)])
+    mat = np.reshape(mat, (out_width,out_height, 3))
+    out.write(mat)
+
+print(mat)
+
+
+# print(pixels[::10000])
