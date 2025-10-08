@@ -6,8 +6,10 @@ import math
 cap = cv2.VideoCapture("test.mp4")
 # cap = cv2.VideoCapture("output.avi")
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out_width = 100
-out_height = 100
+x_offset = 0
+y_offset = 200
+out_width = 160
+out_height = 160
 out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
 pixels = []
 
@@ -16,8 +18,8 @@ while True:
     # print(frame)
     # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
     # print(len(frame[0]))
-    for i in range(200,200+out_width):
-        for j in range(200,200+out_height):
+    for i in range(x_offset,x_offset+out_width):
+        for j in range(y_offset,y_offset+out_height):
             pixels.append(frame[i][j])
     # print(frame[0][0])
     cv2.imshow('video feed', frame)
@@ -30,6 +32,7 @@ cv2.destroyAllWindows()
 
 
 for i in range(out_width):
+    print(f"{i} out of {out_width}")
     for j in range(out_height):
         # print(i*out_width+j)
         m_r_a = []
@@ -62,7 +65,7 @@ for i in range(out_width):
 
 
 for i in range(len(pixels)//(out_width*out_height)):
-    mat = np.array(pixels[out_width*out_height*i:out_width*out_height*(i+1)])
+    mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
     mat = np.reshape(mat, (out_width,out_height, 3))
     out.write(mat)
 
