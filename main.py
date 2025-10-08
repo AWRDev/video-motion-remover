@@ -59,14 +59,14 @@ if __name__ == "__main__":
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
         # print(len(frame[0]))
         cnt = 0
-        for i in range(x_offset,x_offset+out_width, 10):
+        for i in range(x_offset,x_offset+out_width, 35):
             if running == False:
                 pixels.append([])
-            pixels.append([])
             for k in range(i, i+10):
                 for j in range(y_offset,y_offset+out_height):
                     pixels[cnt].append(frame[k][j])
             cnt += 1
+        running = True
         # print(frame[0][0])
         # if (len(pixels)>=1000000):
         #     break
