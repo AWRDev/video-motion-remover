@@ -3,13 +3,13 @@ import numpy as np
 from scipy import stats
 import math
 
-cap = cv2.VideoCapture("test.mp4")
+cap = cv2.VideoCapture("test3.gif")
 # cap = cv2.VideoCapture("output.avi")
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 x_offset = 0
-y_offset = 200
-out_width = 160
-out_height = 160
+y_offset = 0
+out_width = 250
+out_height = 250
 out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
 pixels = []
 
