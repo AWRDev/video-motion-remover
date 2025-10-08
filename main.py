@@ -5,7 +5,7 @@ import math
 
 from multiprocessing import Process, Manager
 
-def filter_video(from_ind, to_ind):
+def filter_video(from_ind, to_ind, pixels, out_width, out_height):
     for i in range(from_ind, to_ind):
         print(f"{i} out of {out_width}")
         for j in range(out_height):
@@ -38,60 +38,61 @@ def filter_video(from_ind, to_ind):
                 # pixels[k] = temp
                 # print(f"POSLE: {pixels[k]}")
 
+if __name__ == "__main__":
 
-cap = cv2.VideoCapture("test2.mp4")
-# cap = cv2.VideoCapture("output.avi")
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-x_offset = 0
-y_offset = 0
-out_width = 350
-out_height = 350
-out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
+    cap = cv2.VideoCapture("test2.mp4")
+    # cap = cv2.VideoCapture("output.avi")
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    x_offset = 0
+    y_offset = 0
+    out_width = 350
+    out_height = 350
+    out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
 
-pixels = []
+    pixels = []
 
-while True:
-    ret, frame = cap.read()
-    # print(frame)
-    # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
-    # print(len(frame[0]))
-    for i in range(x_offset,x_offset+out_width):
-        for j in range(y_offset,y_offset+out_height):
-            pixels.append(frame[i][j])
-    # print(frame[0][0])
-    # if (len(pixels)>=1000000):
-    #     break
-    cv2.imshow('video feed', frame)
-    
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    while True:
+        ret, frame = cap.read()
+        # print(frame)
+        # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+        # print(len(frame[0]))
+        for i in range(x_offset,x_offset+out_width):
+            for j in range(y_offset,y_offset+out_height):
+                pixels.append(frame[i][j])
+        # print(frame[0][0])
+        # if (len(pixels)>=1000000):
+        #     break
+        cv2.imshow('video feed', frame)
         
-cap.release()
-cv2.destroyAllWindows()
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+            
+    cap.release()
+    cv2.destroyAllWindows()
 
+    manager = Manager()
+    pixels = manager.list(pixels)
 
-filter_video(0,250)
+    num_procs = 1
+    chunk = out_width // num_procs
+    processes = []
 
-    # num_procs = 1
-    # chunk = out_width // num_procs
-    # processes = []
+    for i in range(num_procs):
+        start = i * chunk
+        end = (i + 1) * chunk if i < num_procs - 1 else out_width
+        p = Process(target=filter_video, args=(start, end, pixels, out_width, out_height))
+        # p = Process(target=filter_video, args=(args[i]))
+        processes.append(p)
+        p.start()
+    for p in processes:
+        p.join()
 
-    # for i in range(num_procs):
-    #     start = i * chunk
-    #     end = (i + 1) * chunk if i < num_procs - 1 else out_width
-    #     p = Process(target=filter_video, args=(start, end, pixels, out_width, out_height))
-    #     # p = Process(target=filter_video, args=(args[i]))
-    #     processes.append(p)
-    #     p.start()
-    # for p in processes:
-    #     p.join()
+    for i in range(len(pixels)//(out_width*out_height)):
+        mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
+        mat = np.reshape(mat, (out_width,out_height, 3))
+        out.write(mat)
 
-for i in range(len(pixels)//(out_width*out_height)):
-    mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
-    mat = np.reshape(mat, (out_width,out_height, 3))
-    out.write(mat)
-
-print(mat)
+    print(mat)
 
 
 # print(pixels[::10000])
