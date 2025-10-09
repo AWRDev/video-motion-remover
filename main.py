@@ -7,13 +7,13 @@ from multiprocessing import Process, Manager
 
 def filter_video(from_ind, to_ind):
     for i in range(from_ind, to_ind):
-        print(f"{i} out of {out_width}")
+        print(f"{i} out of {to_ind}")
         for j in range(out_height):
             # print(i*out_width+j)
             m_r_a = []
             m_g_a = []
             m_b_a = []
-            for k in range((i*out_width)+j, len(pixels), out_width*out_height):
+            for k in range((i*out_height)+j, len(pixels), out_height*out_width):
                 # print(f"{(i*100+1)*(j+1)+j}")
                 # print(k)
                 pass
@@ -39,14 +39,14 @@ def filter_video(from_ind, to_ind):
                 # print(f"POSLE: {pixels[k]}")
 
 
-cap = cv2.VideoCapture("test2.mp4")
+cap = cv2.VideoCapture("test4.gif")
 # cap = cv2.VideoCapture("output.avi")
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-x_offset = 0
 y_offset = 0
-out_width = 350
-out_height = 350
-out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
+x_offset = 0
+out_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+out_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+out = cv2.VideoWriter('output.avi', fourcc, 29.97, frameSize=(out_width, out_height))
 
 pixels = []
 
@@ -55,8 +55,8 @@ while True:
     # print(frame)
     # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
     # print(len(frame[0]))
-    for i in range(x_offset,x_offset+out_width):
-        for j in range(y_offset,y_offset+out_height):
+    for i in range(y_offset,y_offset+out_height):
+        for j in range(x_offset,x_offset+out_width):
             pixels.append(frame[i][j])
     # print(frame[0][0])
     # if (len(pixels)>=1000000):
@@ -70,7 +70,7 @@ cap.release()
 cv2.destroyAllWindows()
 
 
-filter_video(0,250)
+filter_video(0,out_width)
 
     # num_procs = 1
     # chunk = out_width // num_procs
@@ -86,12 +86,12 @@ filter_video(0,250)
     # for p in processes:
     #     p.join()
 
-for i in range(len(pixels)//(out_width*out_height)):
-    mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
-    mat = np.reshape(mat, (out_width,out_height, 3))
+for i in range(len(pixels)//(out_height*out_width)):
+    mat = np.array(pixels[out_height*out_width*(i):out_height*out_width*(i+1)])
+    mat = np.reshape(mat, (out_height,out_width, 3))
     out.write(mat)
 
-print(mat)
+print(mat.shape)
 
 
 # print(pixels[::10000])
