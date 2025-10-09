@@ -2,8 +2,20 @@ import cv2
 import numpy as np
 # from scipy import stats
 import math
+import ffmpeg
 
 from multiprocessing import Process, Manager
+
+
+def stack_videos_vertically(file_names, output_file):
+    # Загружаем все видео в ffmpeg.input объекты
+    inputs = [ffmpeg.input(name) for name in file_names]
+
+    # Соединяем их вертикально (vstack)
+    stacked = ffmpeg.filter_(inputs, 'vstack', inputs=len(inputs))
+
+    # Выводим полученное видео в файл
+    ffmpeg.output(stacked, output_file).run()
 
 def writeout(index, data, width, height):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -109,6 +121,11 @@ if __name__ == "__main__":
         p.start()
     for p in processes:
         p.join()
+
+    num_files = 9  # например, 3 файла
+    files = [f"output_{i}.avi" for i in range(1, num_files + 1)]
+    output = "vertical_stacked_output.mp4"
+    stack_videos_vertically(files, output)
 
     # for i in range(len(pixels)//(out_width*out_height)):
     #     mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
