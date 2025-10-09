@@ -3,7 +3,7 @@ import numpy as np
 # from scipy import stats
 import math
 
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Array
 
 def filter_video(from_ind, to_ind, pixels, out_width, out_height):
     for i in range(from_ind, to_ind):
@@ -50,22 +50,15 @@ if __name__ == "__main__":
     out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
 
     pixels = []
-    cnt = 0
-    running = False
 
     while True:
         ret, frame = cap.read()
         # print(frame)
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
         # print(len(frame[0]))
-        cnt = 0
-        for i in range(x_offset,x_offset+out_width, 35):
-            if running == False:
-                pixels.append([])
-            for k in range(i, i+10):
+        for i in range(x_offset,x_offset+out_width):
                 for j in range(y_offset,y_offset+out_height):
-                    pixels[cnt].append(frame[k][j])
-            cnt += 1
+                    pixels.extend(frame[i][j])
         running = True
         # print(frame[0][0])
         # if (len(pixels)>=1000000):
@@ -80,11 +73,13 @@ if __name__ == "__main__":
 
 
     print(len(pixels))
-    print(cnt)
-    manager = Manager()
-    for i in range(len(pixels)):
-        pixels[i] = manager.list(pixels)
+    print(pixels[0])
+    print(type(pixels[0]))
+    # exit()
+    # manager = Manager()
     # pixels = manager.list(pixels)
+
+    pixels = Array("i", pixels)
 
     num_procs = 12
     chunk = out_width // num_procs
@@ -93,7 +88,7 @@ if __name__ == "__main__":
     for i in range(num_procs):
         start = i * chunk
         end = (i + 1) * chunk if i < num_procs - 1 else out_width
-        p = Process(target=filter_video, args=(start, end, pixels[i], out_width, out_height))
+        p = Process(target=filter_video, args=(start, end, pixels, out_width, out_height))
         # p = Process(target=filter_video, args=(args[i]))
         processes.append(p)
         p.start()
