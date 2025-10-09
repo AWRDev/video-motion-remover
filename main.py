@@ -5,7 +5,16 @@ import math
 
 from multiprocessing import Process, Manager
 
-def filter_video(from_ind, to_ind, pixels, out_width, out_height):
+def writeout(index, data, width, height):
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(f'output_{index}.avi', fourcc, 29.97, (width, height))
+
+    for i in range(len(data)//(width*height)):
+        mat = np.array(data[width*height*(i):width*height*(i+1)])
+        mat = np.reshape(mat, (height,width, 3))
+        out.write(mat)
+
+def filter_video(index, from_ind, to_ind, pixels, out_width, out_height):
     for i in range(from_ind, to_ind):
         print(f"{i} out of {out_width}")
         for j in range(out_height):
@@ -37,6 +46,7 @@ def filter_video(from_ind, to_ind, pixels, out_width, out_height):
                 pixels[k] = np.array([m_r,m_g,m_b], dtype=np.uint8)
                 # pixels[k] = temp
                 # print(f"POSLE: {pixels[k]}")
+    writeout(index, pixels, out_height, to_ind-from_ind)
 
 if __name__ == "__main__":
 
@@ -62,7 +72,7 @@ if __name__ == "__main__":
         for i in range(x_offset,x_offset+out_width, 35):
             if running == False:
                 pixels.append([])
-            for k in range(i, i+10):
+            for k in range(i, i+35):
                 for j in range(y_offset,y_offset+out_height):
                     pixels[cnt].append(frame[k][j])
             cnt += 1
@@ -82,30 +92,30 @@ if __name__ == "__main__":
     print(len(pixels))
     print(cnt)
     manager = Manager()
-    for i in range(len(pixels)):
-        pixels[i] = manager.list(pixels)
+    # for i in range(len(pixels)):
+    #     pixels[i] = manager.list(pixels)
     # pixels = manager.list(pixels)
 
-    num_procs = 12
+    num_procs = 10
     chunk = out_width // num_procs
     processes = []
 
     for i in range(num_procs):
         start = i * chunk
         end = (i + 1) * chunk if i < num_procs - 1 else out_width
-        p = Process(target=filter_video, args=(start, end, pixels[i], out_width, out_height))
+        p = Process(target=filter_video, args=(i, start, end, pixels[i], out_width, out_height))
         # p = Process(target=filter_video, args=(args[i]))
         processes.append(p)
         p.start()
     for p in processes:
         p.join()
 
-    for i in range(len(pixels)//(out_width*out_height)):
-        mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
-        mat = np.reshape(mat, (out_width,out_height, 3))
-        out.write(mat)
+    # for i in range(len(pixels)//(out_width*out_height)):
+    #     mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
+    #     mat = np.reshape(mat, (out_width,out_height, 3))
+    #     out.write(mat)
 
-        print(mat)
+    #     print(mat)
 
 
 # print(pixels[::10000])
