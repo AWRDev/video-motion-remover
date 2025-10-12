@@ -38,8 +38,36 @@ def filter_video(from_ind, to_ind):
                 # pixels[k] = temp
                 # print(f"POSLE: {pixels[k]}")
 
+def filter_video_numpy_cont(index, from_ind, to_ind, pixels, out_width, out_height):
+    result = []
+    for i in range(pixels.shape[1]):
+        # print(f"Done {i} of {pixels.shape[1]}")
+        a = []
+        for j in range(pixels.shape[2]):
+            m_r_a = pixels[:index,i,j,0]
+            m_g_a = pixels[:index,i,j,1]
+            m_b_a = pixels[:index,i,j,2]
+            c_r = np.bincount(m_r_a)
+            c_g = np.bincount(m_g_a)
+            c_b = np.bincount(m_b_a)
+            m_r = np.argmax(c_r)
+            m_g = np.argmax(c_g)
+            m_b = np.argmax(c_b)
+            # m_r, _ = stats.mode(m_r_a)
+            # m_g, _ = stats.mode(m_g_a)
+            # m_b, _ = stats.mode(m_b_a)
+            # m_r = np.median(m_r_a)
+            # m_g = np.median(m_g_a)
+            # m_b = np.median(m_b_a)
+            pixel = np.array([m_r,m_g,m_b], dtype=np.uint8)
+            a.append(pixel)
+        a = np.array(a, dtype=np.uint8)
+        result.append(a)
+    result = np.array(result, dtype=np.uint8)
+    return result
 
-cap = cv2.VideoCapture("test4.gif")
+
+cap = cv2.VideoCapture("test2.mp4")
 # cap = cv2.VideoCapture("output.avi")
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 y_offset = 0
@@ -49,15 +77,21 @@ out_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 out = cv2.VideoWriter('output.avi', fourcc, 29.97, frameSize=(out_width, out_height))
 
 pixels = []
+frames = []
 
 while True:
     ret, frame = cap.read()
+    frames.append(frame)
     # print(frame)
     # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
     # print(len(frame[0]))
-    for i in range(y_offset,y_offset+out_height):
-        for j in range(x_offset,x_offset+out_width):
-            pixels.append(frame[i][j])
+
+
+    # for i in range(y_offset,y_offset+out_height):
+    #     for j in range(x_offset,x_offset+out_width):
+    #         pixels.append(frame[i][j])
+
+
     # print(frame[0][0])
     # if (len(pixels)>=1000000):
     #     break
@@ -70,7 +104,17 @@ cap.release()
 cv2.destroyAllWindows()
 
 
-filter_video(0,out_width)
+# filter_video(0,out_width)
+frames = np.array(frames)
+res_frames = []
+for i in range(1, frames.shape[0]):
+    print(f"Done frame {i} out of {frames.shape[0]}")
+    new_frame = filter_video_numpy_cont(i, 0, out_width, frames, out_width, out_height)
+    res_frames.append(new_frame)
+
+print(np.array(res_frames).shape)
+for frame in res_frames:
+    out.write(frame)
 
     # num_procs = 1
     # chunk = out_width // num_procs
@@ -86,12 +130,12 @@ filter_video(0,out_width)
     # for p in processes:
     #     p.join()
 
-for i in range(len(pixels)//(out_height*out_width)):
-    mat = np.array(pixels[out_height*out_width*(i):out_height*out_width*(i+1)])
-    mat = np.reshape(mat, (out_height,out_width, 3))
-    out.write(mat)
+# for i in range(len(pixels)//(out_height*out_width)):
+#     mat = np.array(pixels[out_height*out_width*(i):out_height*out_width*(i+1)])
+#     mat = np.reshape(mat, (out_height,out_width, 3))
+#     out.write(mat)
 
-print(mat.shape)
+# print(mat.shape)
 
 
 # print(pixels[::10000])
