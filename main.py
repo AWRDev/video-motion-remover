@@ -5,6 +5,7 @@ import math
 import ffmpeg
 
 from multiprocessing import Process, Manager
+import concurrent.futures
 
 
 def stack_videos_vertically(file_names, output_file):
@@ -60,6 +61,38 @@ def filter_video(index, from_ind, to_ind, pixels, out_width, out_height):
                 # print(f"POSLE: {pixels[k]}")
     writeout(index, pixels, out_height, to_ind-from_ind)
 
+def filter_video_numpy_cont(index, from_ind, to_ind, pixels, out_width, out_height):
+    result = []
+    for i in range(pixels.shape[1]):
+        # print(f"Done {i} of {pixels.shape[1]}")
+        a = []
+        for j in range(pixels.shape[2]):
+            m_r_a = pixels[:index,i,j,0]
+            m_g_a = pixels[:index,i,j,1]
+            m_b_a = pixels[:index,i,j,2]
+            c_r = np.bincount(m_r_a)
+            c_g = np.bincount(m_g_a)
+            c_b = np.bincount(m_b_a)
+            m_r = np.argmax(c_r)
+            m_g = np.argmax(c_g)
+            m_b = np.argmax(c_b)
+            # m_r, _ = stats.mode(m_r_a)
+            # m_g, _ = stats.mode(m_g_a)
+            # m_b, _ = stats.mode(m_b_a)
+            # m_r = np.median(m_r_a)
+            # m_g = np.median(m_g_a)
+            # m_b = np.median(m_b_a)
+            pixel = np.array([m_r,m_g,m_b], dtype=np.uint8)
+            a.append(pixel)
+        a = np.array(a, dtype=np.uint8)
+        result.append(a)
+    result = np.array(result, dtype=np.uint8)
+    return result
+
+def process_frame(i, out_width, frames, out_height):
+    print(f"Done frame {i} out of {frames.shape[0]}")
+    return filter_video_numpy_cont(i, 0, out_width, frames, out_width, out_height)
+
 if __name__ == "__main__":
 
     cap = cv2.VideoCapture("test2.mp4")
@@ -74,21 +107,25 @@ if __name__ == "__main__":
     pixels = []
     cnt = 0
     running = False
+    frames = []
 
     while True:
         ret, frame = cap.read()
+        frames.append(frame)
         # print(frame)
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
         # print(len(frame[0]))
-        cnt = 0
-        for i in range(x_offset,x_offset+out_width, 35):
-            if running == False:
-                pixels.append([])
-            for k in range(i, i+35):
-                for j in range(y_offset,y_offset+out_height):
-                    pixels[cnt].append(frame[k][j])
-            cnt += 1
-        running = True
+
+        # cnt = 0
+        # for i in range(x_offset,x_offset+out_width, 35):
+        #     if running == False:
+        #         pixels.append([])
+        #     for k in range(i, i+35):
+        #         for j in range(y_offset,y_offset+out_height):
+        #             pixels[cnt].append(frame[k][j])
+        #     cnt += 1
+        # running = True
+
         # print(frame[0][0])
         # if (len(pixels)>=1000000):
         #     break
@@ -100,32 +137,43 @@ if __name__ == "__main__":
     cap.release()
     cv2.destroyAllWindows()
 
+    frames = np.array(frames)
+    res_frames = []
 
-    print(len(pixels))
-    print(cnt)
-    manager = Manager()
-    # for i in range(len(pixels)):
-    #     pixels[i] = manager.list(pixels)
-    # pixels = manager.list(pixels)
 
-    num_procs = 10
-    chunk = out_width // num_procs
-    processes = []
 
-    for i in range(num_procs):
-        start = i * chunk
-        end = (i + 1) * chunk if i < num_procs - 1 else out_width
-        p = Process(target=filter_video, args=(i, start, end, pixels[i], out_width, out_height))
-        # p = Process(target=filter_video, args=(args[i]))
-        processes.append(p)
-        p.start()
-    for p in processes:
-        p.join()
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = list(executor.map(lambda i: process_frame(i, out_width, frames, out_height), range(1, frames.shape[0])))
 
-    num_files = 9  # например, 3 файла
-    files = [f"output_{i}.avi" for i in range(1, num_files + 1)]
-    output = "vertical_stacked_output.mp4"
-    stack_videos_vertically(files, output)
+    res_frames.extend(results)
+
+    print(len(results))
+
+    # print(len(pixels))
+    # print(cnt)
+    # manager = Manager()
+    # # for i in range(len(pixels)):
+    # #     pixels[i] = manager.list(pixels)
+    # # pixels = manager.list(pixels)
+
+    # num_procs = 10
+    # chunk = out_width // num_procs
+    # processes = []
+
+    # for i in range(num_procs):
+    #     start = i * chunk
+    #     end = (i + 1) * chunk if i < num_procs - 1 else out_width
+    #     p = Process(target=filter_video, args=(i, start, end, pixels[i], out_width, out_height))
+    #     # p = Process(target=filter_video, args=(args[i]))
+    #     processes.append(p)
+    #     p.start()
+    # for p in processes:
+    #     p.join()
+
+    # num_files = 9  # например, 3 файла
+    # files = [f"output_{i}.avi" for i in range(1, num_files + 1)]
+    # output = "vertical_stacked_output.mp4"
+    # stack_videos_vertically(files, output)
 
     # for i in range(len(pixels)//(out_width*out_height)):
     #     mat = np.array(pixels[out_width*out_height*(i):out_width*out_height*(i+1)])
