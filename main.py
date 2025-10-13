@@ -89,19 +89,65 @@ def filter_video_numpy_cont(index, from_ind, to_ind, pixels, out_width, out_heig
     result = np.array(result, dtype=np.uint8)
     return result
 
-def process_frame(i, out_width, frames, out_height):
-    print(f"Done frame {i} out of {frames.shape[0]}")
-    return filter_video_numpy_cont(i, 0, out_width, frames, out_width, out_height)
+
+def filter_pixel_numpy_cont(pixels):
+    print(f"FUNCTION SHAPE {pixels.shape}")
+    m_r_a = pixels[:,0]
+    m_g_a = pixels[:,1]
+    m_b_a = pixels[:,2]
+    c_r = np.bincount(m_r_a)
+    c_g = np.bincount(m_g_a)
+    c_b = np.bincount(m_b_a)
+    m_r = np.argmax(c_r)
+    m_g = np.argmax(c_g)
+    m_b = np.argmax(c_b)
+    # m_r, _ = stats.mode(m_r_a)
+    # m_g, _ = stats.mode(m_g_a)
+    # m_b, _ = stats.mode(m_b_a)
+    # m_r = np.median(m_r_a)
+    # m_g = np.median(m_g_a)
+    # m_b = np.median(m_b_a)
+    pixel = np.array([m_r,m_g,m_b], dtype=np.uint8)
+    print(pixel)
+    exit(0)
+    return pixel
+
+def filter_row_numpy_cont(row):
+    print(f"FUNCTION SHAPE {row.shape}")
+    new_row = []
+    for pixel in row:
+        m_r_a = pixel[:,0]
+        m_g_a = pixel[:,1]
+        m_b_a = pixel[:,2]
+        c_r = np.bincount(m_r_a)
+        c_g = np.bincount(m_g_a)
+        c_b = np.bincount(m_b_a)
+        m_r = np.argmax(c_r)
+        m_g = np.argmax(c_g)
+        m_b = np.argmax(c_b)
+        # m_r, _ = stats.mode(m_r_a)
+        # m_g, _ = stats.mode(m_g_a)
+        # m_b, _ = stats.mode(m_b_a)
+        # m_r = np.median(m_r_a)
+        # m_g = np.median(m_g_a)
+        # m_b = np.median(m_b_a)
+        new_pixel = np.array([m_r,m_g,m_b], dtype=np.uint8)
+        new_row.append(new_pixel)
+    return new_row
+
+def process_frame(frames):
+    return filter_row_numpy_cont(frames)
+    # return filter_pixel_numpy_cont(frames)
 
 if __name__ == "__main__":
 
-    cap = cv2.VideoCapture("test2.mp4")
+    cap = cv2.VideoCapture("test7.gif")
     # cap = cv2.VideoCapture("output.avi")
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     x_offset = 0
     y_offset = 0
-    out_width = 350
-    out_height = 350
+    out_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    out_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     out = cv2.VideoWriter('output.avi', fourcc, 29.97, (out_width, out_height))
 
     pixels = []
@@ -138,15 +184,28 @@ if __name__ == "__main__":
     cv2.destroyAllWindows()
 
     frames = np.array(frames)
+    frames = np.transpose(frames,(1,2,0,3))
     res_frames = []
 
 
+    print(f"INCOMING SHAPE {frames.shape}")
+    # print(frames[0])
+    # print("=================")
+    # print(frames[0,0])
+    # print("=================")
+    # print(frames[0,0,0])
+    # exit()
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = list(executor.map(lambda i: process_frame(i, out_width, frames, out_height), range(1, frames.shape[0])))
+        results = list(executor.map(process_frame, frames))
+
+        # for res in results:
+            # print(res)
 
     res_frames.extend(results)
 
+    res_frames = np.reshape(res_frames, (out_height,out_width,3))
+    cv2.imwrite("dedede.jpg", res_frames)
     print(len(results))
 
     # print(len(pixels))
