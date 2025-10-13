@@ -10,13 +10,13 @@ def filter_video(from_ind, to_ind):
         print(f"{i} out of {to_ind}")
         for j in range(out_height):
             # print(i*out_width+j)
-            m_r_a = []
-            m_g_a = []
-            m_b_a = []
+            m_r_a = np.array([], dtype="int64")
+            m_g_a = np.array([], dtype="int64")
+            m_b_a = np.array([], dtype="int64")
             for k in range((i*out_height)+j, len(pixels), out_height*out_width):
-                m_r_a.append(pixels[k][0])
-                m_g_a.append(pixels[k][1])
-                m_b_a.append(pixels[k][2])
+                m_r_a = np.append(m_r_a, pixels[k][0])
+                m_g_a = np.append(m_g_a, pixels[k][1])
+                m_b_a = np.append(m_b_a, pixels[k][2])
             c_r = np.bincount(m_r_a)
             c_g = np.bincount(m_g_a)
             c_b = np.bincount(m_b_a)
