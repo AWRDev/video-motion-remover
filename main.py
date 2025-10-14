@@ -40,7 +40,7 @@ def filter_video(from_ind, to_ind, pixels, out_width, out_height):
 
 if __name__ == "__main__":
 
-    cap = cv2.VideoCapture("test2.mp4")
+    cap = cv2.VideoCapture("test8.gif")
     # cap = cv2.VideoCapture("output.avi")
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     x_offset = 0
@@ -53,6 +53,8 @@ if __name__ == "__main__":
 
     while True:
         ret, frame = cap.read()
+        if not ret:
+            break
         # print(frame)
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
         # print(len(frame[0]))
