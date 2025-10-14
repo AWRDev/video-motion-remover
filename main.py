@@ -141,7 +141,7 @@ def process_frame(frames):
 
 if __name__ == "__main__":
 
-    cap = cv2.VideoCapture("test7.gif")
+    cap = cv2.VideoCapture("test8.gif")
     # cap = cv2.VideoCapture("output.avi")
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     x_offset = 0
@@ -157,6 +157,8 @@ if __name__ == "__main__":
 
     while True:
         ret, frame = cap.read()
+        if not ret:
+            break
         frames.append(frame)
         # print(frame)
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
