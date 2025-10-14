@@ -5,6 +5,8 @@ import math
 
 from multiprocessing import Process, Manager
 
+import argparse
+
 def filter_video(from_ind, to_ind):
     for i in range(from_ind, to_ind):
         print(f"{i} out of {to_ind}")
@@ -66,8 +68,16 @@ def filter_video_numpy_cont(index, from_ind, to_ind, pixels, out_width, out_heig
     result = np.array(result, dtype=np.uint8)
     return result
 
+filename = ""
 
-cap = cv2.VideoCapture("test2.mp4")
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--input", help="Path to an input file")
+args = parser.parse_args()
+
+if args.input:
+    filename = args.input
+
+cap = cv2.VideoCapture(filename)
 # cap = cv2.VideoCapture("output.avi")
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 y_offset = 0
