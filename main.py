@@ -7,6 +7,7 @@ import ffmpeg
 from multiprocessing import Process, Manager
 import concurrent.futures
 
+import argparse
 
 def stack_videos_vertically(file_names, output_file):
     # Загружаем все видео в ffmpeg.input объекты
@@ -89,6 +90,14 @@ def filter_video_numpy_cont(index, from_ind, to_ind, pixels, out_width, out_heig
     result = np.array(result, dtype=np.uint8)
     return result
 
+filename = ""
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--input", help="Path to an input file")
+args = parser.parse_args()
+
+if args.input:
+    filename = args.input
 
 def filter_pixel_numpy_cont(pixels):
     print(f"FUNCTION SHAPE {pixels.shape}")
