@@ -7,6 +7,7 @@ import ffmpeg
 from multiprocessing import Process, Manager
 import concurrent.futures
 
+import argparse
 
 def stack_videos_vertically(file_names, output_file):
     # Загружаем все видео в ffmpeg.input объекты
@@ -139,9 +140,18 @@ def process_frame(frames):
     return filter_row_numpy_cont(frames)
     # return filter_pixel_numpy_cont(frames)
 
+filename = ""
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--input", help="Path to an input file")
+args = parser.parse_args()
+
+if args.input:
+    filename = args.input
+
 if __name__ == "__main__":
 
-    cap = cv2.VideoCapture("test8.gif")
+    cap = cv2.VideoCapture(filename)
     # cap = cv2.VideoCapture("output.avi")
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     x_offset = 0
