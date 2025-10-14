@@ -72,6 +72,7 @@ filename = ""
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="Path to an input file")
+parser.add_argument("-s", "--silent", help="Won't show a video preview window")
 args = parser.parse_args()
 
 if args.input:
