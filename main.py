@@ -149,13 +149,18 @@ def process_frame(frames):
     # return filter_pixel_numpy_cont(frames)
 
 filename = ""
+show_videocap_window: bool = True
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="Path to an input file")
+parser.add_argument("-s", "--silent", help="Won't show a video preview window")
 args = parser.parse_args()
 
 if args.input:
     filename = args.input
+
+if args.silent:
+    show_videocap_window = False
 
 if __name__ == "__main__":
 
@@ -195,7 +200,8 @@ if __name__ == "__main__":
         # print(frame[0][0])
         # if (len(pixels)>=1000000):
         #     break
-        cv2.imshow('video feed', frame)
+        if show_videocap_window:
+            cv2.imshow('video feed', frame)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
